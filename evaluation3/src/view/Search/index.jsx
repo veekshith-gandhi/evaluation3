@@ -1,4 +1,5 @@
-import { Box } from "@mui/material";
+import { Box, Button, Pagination } from "@mui/material";
+import { margin } from "@mui/system";
 import { useEffect, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -12,13 +13,20 @@ const SearchView = () => {
 
   const dispatch = useDispatch();
   const history = useHistory();
-  const { term } = useParams();
-  console.log(term);
+  const [page, setPage] = useState(1);
+  const [term, setTerm] = useState("");
+
   useEffect(() => {
     const searchPath = history.location.search;
-    const searchTerm = searchPath.split("?term=").join("").split("&")[0];
-    // console.log(searchTerm);
+    const query = new URLSearchParams(searchPath);
+    setTerm(query.get("term"));
+
+    setPage(parseInt(query.get("page")));
   }, [history]);
+
+  useEffect(() => {
+    searchAction(term, page)(dispatch);
+  }, [term, page, dispatch]);
 
   if (!isLogged) {
     return <div>Login to continue</div>;
@@ -29,10 +37,37 @@ const SearchView = () => {
   }
 
   return (
-    <div>
+    <div style={{ marginTop: "20px" }}>
       {data?.items?.map((item) => {
-        return <div>{}</div>;
+        return (
+          <div>
+            <h3>{item.full_name}</h3>
+            <p>{item.description}</p>
+            <hr />
+          </div>
+        );
       })}
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <Button
+          onClick={() => {
+            setPage(page - 1);
+            history.push(`/search?term=${term}&page=${page}`);
+          }}
+          disabled={page == 1}
+          variant="contained"
+        >
+          Prev
+        </Button>
+        <Button
+          onClick={() => {
+            setPage(page + 1);
+            history.push(`/search?term=${term}&page=${page}`);
+          }}
+          variant="outlined"
+        >
+          Next
+        </Button>
+      </div>
     </div>
   );
 };
